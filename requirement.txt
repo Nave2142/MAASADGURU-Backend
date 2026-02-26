@@ -1,0 +1,9 @@
+Flask==3.0.3
+Flask-Cors==4.0.1
+Flask-SQLAlchemy==3.1.1
+python-dotenv==1.0.1
+ReportLab==4.2.0
+PyPDF2==3.0.1
+requests==2.31.0
+flasgger==0.9.7.1
+PyJWT==2.10.1
