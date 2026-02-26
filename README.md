@@ -40,9 +40,47 @@ python main.py
 
 The server will start at `http://localhost:5000`.
 
-## API Documentation
-Once the server is running, you can access the interactive API documentation (Swagger) at:
-`http://localhost:5000/apidocs`
+### 4. Create Admin User
+To access protected endpoints and the admin dashboard, you need to create an admin account:
+```powershell
+python create_admin.py <your_username> <your_password>
+```
+Example: `python create_admin.py admin admin123`
+
+
+## Detailed Features
+
+### 1. 📩 Inquiry Management (Contact Form)
+The backend provides a robust system to capture and store inquiries from the website's "Contact Us" page.
+- **Validation**: Ensures all fields like Name, Email, Mobile, Subject, and Message are provided.
+- **Persistent Storage**: All inquiries are saved in the SQLite database with a timestamp.
+- **Endpoint**: `POST /api/inquiry`
+
+### 2. 🔐 Admin Authentication (JWT)
+Secure access to administrative features such as the gallery manager.
+- **Security**: Uses `PyJWT` for stateless authentication and `werkzeug` for secure password hashing.
+- **Session**: Tokens are valid for 24 hours.
+- **Endpoint**: `POST /api/admin/login`
+
+### 3. 🖼️ Dynamic Gallery Management
+Empowers admins to manage the visual content of the social service projects directly from the dashboard.
+- **Image Upload**: Supports `png`, `jpg`, `jpeg`, and `gif`. Automatically handles unique filename generation to prevent overwriting.
+- **File Serving**: Images are served via the `/api/static/uploads/` path.
+- **Fallback**: If no images are uploaded, the API provides high-quality default placeholders to ensure the UI always looks great.
+- **Endpoints**: `GET /api/gallery`, `POST /api/gallery/upload`, `DELETE /api/gallery/<id>`
+
+### 4. 📄 Automated PDF Generation
+A specialized engine to generate professional project overview documents for donors or stakeholders.
+- **Branded Design**: Includes the Maasadguru logo details, registration number, and official formatting.
+- **Customizable**: Allows passing specific project content via the API to be included in the PDF dynamically.
+- **Real-time**: Generates and serves the binary PDF file instantly upon request.
+- **Endpoint**: `POST /api/generate-pdf`
+
+### 5. 🛠️ Interactive API Docs (Swagger)
+Built-in documentation for developers and frontend integrators.
+- **Live Testing**: Test every API endpoint directly from the browser without needing Postman.
+- **Schema Info**: Detailed information on required payloads and response formats.
+- **URL**: `http://localhost:5000/apidocs`
 
 ## API Endpoints
 
