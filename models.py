@@ -18,6 +18,7 @@ class Photo(db.Model):
     url = db.Column(db.String(255), nullable=False)
     title = db.Column(db.String(100))
     desc = db.Column(db.String(255))
+    type = db.Column(db.String(20), default='image') # 'image' or 'video'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def to_dict(self):
@@ -26,6 +27,7 @@ class Photo(db.Model):
             "url": self.url,
             "title": self.title,
             "desc": self.desc,
+            "type": self.type,
             "created_at": self.created_at.isoformat()
         }
 

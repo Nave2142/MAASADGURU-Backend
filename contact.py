@@ -61,3 +61,17 @@ def handle_inquiry():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@contact_bp.route('/api/inquiry', methods=['GET'])
+def get_inquiries():
+    """
+    Get all inquiries (for admin)
+    """
+    try:
+        inquiries = Inquiry.query.order_by(Inquiry.created_at.desc()).all()
+        return jsonify({
+            "status": "success",
+            "data": [i.to_dict() for i in inquiries]
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

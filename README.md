@@ -7,6 +7,7 @@ A professional Flask-based backend for the Maasadguru Social Service project.
 - **Inquiry Management**: Secure storage for contact form submissions.
 - **Admin Authentication**: Secure JWT-based login for admin dashboard access.
 - **Dynamic Gallery**: Full management of social service photos with upload and delete capabilities.
+- **Database Migration**: Easy schema updates via a dedicated migration script.
 - **PDF Generation**: Automated generation of project overview documents.
 - **API Documentation**: Integrated Swagger UI for interactive endpoint testing.
 - **CORS Support**: Pre-configured for seamless integration with the React frontend.
@@ -47,6 +48,13 @@ python create_admin.py <your_username> <your_password>
 ```
 Example: `python create_admin.py admin admin123`
 
+### 5. Database Migration
+If you've updated the source code and need to update your database schema (e.g., adding new columns), run:
+```powershell
+python migrate_db.py
+```
+This script ensures your database stays in sync with the latest application features without losing existing data.
+
 
 ## Detailed Features
 
@@ -81,6 +89,12 @@ Built-in documentation for developers and frontend integrators.
 - **Live Testing**: Test every API endpoint directly from the browser without needing Postman.
 - **Schema Info**: Detailed information on required payloads and response formats.
 - **URL**: `http://localhost:5000/apidocs`
+
+### 6. 🔄 Database Migration Utility
+A dedicated script to manage schema evolutions as the project grows.
+- **Automated Updates**: Safely adds missing columns (like the `type` field in the gallery) to existing tables.
+- **Safety First**: Checks for existing columns before attempting modifications to prevent SQL errors.
+- **Ease of Use**: Can be run anytime via `python migrate_db.py`.
 
 ## API Endpoints
 

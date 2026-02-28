@@ -7,16 +7,22 @@ from datetime import datetime
 
 gallery_bp = Blueprint('gallery', __name__)
 
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'mp4', 'mov', 'avi'}
 
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def get_file_type(filename):
+    ext = filename.rsplit('.', 1)[1].lower()
+    if ext in {'mp4', 'mov', 'avi'}:
+        return 'video'
+    return 'image'
+
 @gallery_bp.route('/api/gallery', methods=['GET'])
 def get_gallery():
     """
-    Returns gallery items for the frontend
+    Returns gallery items from the database
     ---
     responses:
       200:
@@ -29,11 +35,17 @@ def get_gallery():
               type: array
               items:
                 properties:
+                  id:
+                    type: integer
                   url:
                     type: string
                   title:
                     type: string
                   desc:
+                    type: string
+                  type:
+                    type: string
+                  created_at:
                     type: string
             count:
               type: integer
@@ -41,21 +53,6 @@ def get_gallery():
     photos = Photo.query.order_by(Photo.created_at.desc()).all()
     images = [p.to_dict() for p in photos]
     
-    # If no photos in DB, return some defaults for now (or empty list)
-    if not images:
-        images = [
-            {
-                "url": "https://plus.unsplash.com/premium_photo-1682092585257-58d1c813d9b4?q=80&w=1170&auto=format&fit=crop",
-                "title": "Educational Reform",
-                "desc": "Empowering rural students through digital literacy."
-            },
-            {
-                "url": "https://images.unsplash.com/photo-1652858672796-960164bd632b?q=80&w=1170&auto=format&fit=crop",
-                "title": "Environmental Impact",
-                "desc": "Sustaining local ecosystems through community action."
-            }
-        ]
-        
     return jsonify({
         "status": "success",
         "data": images,
@@ -86,16 +83,16 @@ def upload_image():
         filepath = os.path.join(upload_folder, filename)
         file.save(filepath)
         
-        # In a real app, you'd save the relative URL
         url = f"/api/static/uploads/{filename}"
+        file_type = get_file_type(filename)
         
-        new_photo = Photo(url=url, title=title, desc=desc)
+        new_photo = Photo(url=url, title=title, desc=desc, type=file_type)
         db.session.add(new_photo)
         db.session.commit()
         
         return jsonify({
             "status": "success",
-            "message": "Image uploaded successfully",
+            "message": f"{file_type.capitalize()} uploaded successfully",
             "data": new_photo.to_dict()
         })
     
