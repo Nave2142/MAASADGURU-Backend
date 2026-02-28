@@ -1,10 +1,12 @@
 import os
+import logging
 from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
 from datetime import datetime
 from dotenv import load_dotenv
 from flasgger import Swagger
 from extensions import db
+from config import config_by_name # Use consistent config system
 from contact import contact_bp
 from gallery import gallery_bp
 from donate import donate_bp
@@ -13,33 +15,35 @@ from auth import auth_bp
 # Load environment variables
 load_dotenv()
 
-def create_app():
+# Setup logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+def create_app(config_name=None):
+    """Application Factory Pattern."""
     app = Flask(__name__)
     
-    # Enable CORS
-    CORS(app)
+    # Environment selection (default to development for now)
+    config_name = config_name or os.getenv('FLASK_ENV', 'development').lower()
+    app.config.from_object(config_by_name[config_name])
 
-    # Database Configuration
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///maasadguru.db')
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'maasadguru-secret-key-123')
+    # Enhanced CORS for production if needed (can be more restrictive)
+    CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-    # Initialize Extensions
+    # Extensions setup
     db.init_app(app)
     
-    # Initialize Swagger
+    # Swagger Documentation
     swagger = Swagger(app, template={
         "info": {
             "title": "Maasadguru Social Service API",
             "description": "API documentation for the Maasadguru Backend System",
             "version": "1.0.0",
-            "contact": {
-                "email": "maasadguru@gmail.com"
-            }
+            "contact": { "email": "maasadguru@gmail.com" }
         }
     })
 
-    # Register Blueprints
+    # Central Blueprints Registration
     app.register_blueprint(contact_bp)
     app.register_blueprint(gallery_bp)
     app.register_blueprint(donate_bp)
@@ -50,7 +54,21 @@ def create_app():
     def uploaded_file(filename):
         return send_from_directory(os.path.join(app.root_path, 'static', 'uploads'), filename)
 
-    # Health Check Route
+    # Global Error Handlers
+    @app.errorhandler(404)
+    def handle_404(e):
+        return jsonify({"status": "error", "message": "Resource not found"}), 404
+
+    @app.errorhandler(500)
+    def handle_500(e):
+        logger.error(f"Server error: {str(e)}")
+        return jsonify({"status": "error", "message": "Internal server error. Please try again later."}), 500
+
+    @app.errorhandler(400)
+    def handle_400(e):
+        return jsonify({"status": "error", "message": str(e.description)}), 400
+
+    # API Base Route / Health Check
     @app.route('/', methods=['GET'])
     def health_check():
         """
@@ -86,4 +104,12 @@ def create_app():
 if __name__ == '__main__':
     app = create_app()
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    env = os.getenv('FLASK_ENV', 'development').lower()
+
+    if env == 'production':
+        from waitress import serve
+        logger.info(f"🚀 Starting Production Server (Waitress) on port {port}...")
+        serve(app, host='0.0.0.0', port=port)
+    else:
+        logger.info(f"🛠️ Starting Development Server (Debug) on port {port}...")
+        app.run(host='0.0.0.0', port=port, debug=True)
